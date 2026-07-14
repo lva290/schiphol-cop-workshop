@@ -20,7 +20,8 @@ def by_airline(flights: list[Flight], airline: str) -> list[Flight]:
 
 
 def by_city(flights: list[Flight], city: str) -> list[Flight]:
-    return [f for f in flights if f.city == city]
+    needle = city.casefold()
+    return [f for f in flights if needle in f.city.casefold()]
 
 
 def apply_filters(
