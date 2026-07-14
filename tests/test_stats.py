@@ -35,6 +35,32 @@ def test_average_delay_is_zero_without_delays():
     assert summarize(flights).avg_delay == 0
 
 
+def test_average_delay_ignores_cancelled_and_on_time_flights():
+    # BI-4791: average is over delayed flights only, not spread across all.
+    flights = [
+        make_flight(number="KL0001"),
+        make_flight(number="KL0002", delay_minutes=20, status=Status.DELAYED),
+        make_flight(number="KL0003", delay_minutes=60, status=Status.DELAYED),
+        make_flight(number="KL0004", status=Status.CANCELLED),
+    ]
+    assert summarize(flights).avg_delay == 40
+
+
+def test_buckets_add_up_to_total_and_exclude_cancelled_from_on_time():
+    # BI-4791: cancelled flights are not on time; buckets sum to the total.
+    flights = [
+        make_flight(number="KL0001"),
+        make_flight(number="KL0002"),
+        make_flight(number="KL0003", delay_minutes=15, status=Status.DELAYED),
+        make_flight(number="KL0004", status=Status.CANCELLED),
+    ]
+    summary = summarize(flights)
+    assert summary.on_time == 2
+    assert summary.delayed == 1
+    assert summary.cancelled == 1
+    assert summary.on_time + summary.delayed + summary.cancelled == summary.total
+
+
 def test_on_time_count_excludes_delayed():
     flights = [
         make_flight(number="KL0001"),
