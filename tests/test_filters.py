@@ -43,6 +43,18 @@ def test_by_city_matches_the_board_entry(sample_flights):
     assert {f.number for f in matches} == {"KL1001", "KL1002"}
 
 
+def test_by_city_matches_regardless_of_case(sample_flights):
+    # BI-4790: "london" must find the London flights, whatever the casing.
+    matches = by_city(sample_flights, "london")
+    assert {f.number for f in matches} == {"KL1001", "KL1002"}
+
+
+def test_by_city_matches_partial_names(sample_flights):
+    # BI-4790: partial input like "lon" or "new york" should match (substring).
+    assert {f.number for f in by_city(sample_flights, "londo")} == {"KL1001", "KL1002"}
+    assert {f.number for f in by_city(sample_flights, "new york")} == {"KL0643", "DL0046"}
+
+
 def test_by_city_no_match_returns_empty_list(sample_flights):
     assert by_city(sample_flights, "Atlantis (ATL)") == []
 
